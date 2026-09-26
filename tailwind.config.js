@@ -4,19 +4,17 @@ export default {
   theme: {
     extend: {
       colors: {
-        tribe: {
-          black: '#09090b',
-          charcoal: '#18181b',
-          lime: '#a3e635',
-          live: '#ef4444',
+        brand: {
+          50: '#eef2ff',
+          100: '#e0e7ff',
+          500: '#6366f1',
+          600: '#4f46e5',
+          700: '#4338ca',
         },
+        live: '#ef4444',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
-      },
-      boxShadow: {
-        lime: '0 0 20px rgba(163, 230, 53, 0.25)',
-        live: '0 0 12px rgba(239, 68, 68, 0.5)',
       },
     },
   },
