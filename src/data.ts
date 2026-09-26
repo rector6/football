@@ -1,4 +1,11 @@
-export type PageId = 'home' | 'news' | 'scores' | 'forum' | 'shop';
+export type PageId =
+  | 'home'
+  | 'news'
+  | 'scores'
+  | 'shop'
+  | 'about'
+  | 'advertise'
+  | 'contact';
 
 export interface LiveMatch {
   id: string;
@@ -31,23 +38,17 @@ export interface Product {
   category: 'jersey' | 'hoodie' | 'cap' | 'accessories';
 }
 
-export interface ChatMessage {
-  id: string;
-  user: string;
-  text: string;
-  side?: 'left' | 'right';
-}
-
 export interface NewsArticle {
   id: string;
   title: string;
   summary: string;
   body: string;
-  category: string;
+  category: 'Interview' | 'Match Analysis' | 'Transfer' | 'Opinion' | 'Feature';
   time: string;
   readMins: number;
-  emoji: string;
+  author: string;
   featured?: boolean;
+  imageGradient: string;
 }
 
 export const LIVE_TICKER: LiveMatch[] = [
@@ -73,99 +74,94 @@ export const ALL_MATCHES: ScheduledMatch[] = [
 export const NEWS: NewsArticle[] = [
   {
     id: 'n1',
-    title: 'Transfer Deadline Day: Five deals that shook Europe',
-    summary: 'From late drama to record fees — everything fans need to know before the window slammed shut.',
-    body: 'Clubs across Europe scrambled until the final hour. Star forwards moved, midfielders returned home, and several surprise loans reshaped title races. Here is a clear breakdown of the five moves every fan is talking about, what they mean for the season, and which squads look strongest on paper after deadline day.',
-    category: 'Transfers',
+    title: '"I still train like a kid from the streets" — exclusive player interview',
+    summary: 'A candid conversation about pressure, family, and what fans never see after the final whistle.',
+    body: 'In our studio, the striker spoke openly about recovery routines, social media noise, and why representation still matters. He described the moment he almost quit at 17, the coach who refused to let him, and how African fans abroad fuel every sprint. This is not a press-room soundbite — it is a full interview on identity, ambition, and the cost of excellence.',
+    category: 'Interview',
     time: '2h ago',
-    readMins: 4,
-    emoji: '💥',
+    readMins: 8,
+    author: 'Amina Okoro',
     featured: true,
+    imageGradient: 'from-violet-500/30 via-fuchsia-400/20 to-amber-200/30',
   },
   {
     id: 'n2',
-    title: 'El Clásico preview: Form, tactics and key battles',
-    summary: 'Real Madrid host Barcelona with both sides under pressure. We break down the matchup.',
-    body: 'Madrid arrive with confidence in attack but questions at the back. Barcelona need points and a response after a mixed run. Watch the midfield duel, set pieces, and how each coach manages the first 20 minutes. Expected lineups and three storylines that could decide the night.',
-    category: 'Preview',
+    title: 'Channel analysis: Why the high press failed after minute 60',
+    summary: 'Tactical breakdown of spacing, full-back fatigue, and the midfield pivot that decided the match.',
+    body: 'We mapped every recovery run after the hour mark. The data is clear: the press became optional instead of coordinated. Central midfielders dropped five metres too deep, full-backs stayed high, and the opponent No.6 found the pocket repeatedly. Here is the clip-by-clip analysis, the manager likely fix for the next fixture, and what it means for the title race.',
+    category: 'Match Analysis',
     time: '5h ago',
-    readMins: 5,
-    emoji: '🔥',
+    readMins: 6,
+    author: 'James Reed',
     featured: true,
+    imageGradient: 'from-sky-400/25 via-cyan-300/20 to-emerald-200/25',
   },
   {
     id: 'n3',
-    title: 'Premier League round-up: Title race tightens again',
-    summary: 'Three teams remain in touching distance as the season enters a decisive stretch.',
-    body: 'Results over the weekend reshuffled the table. Away form is becoming the separator. We look at remaining fixtures, injury lists, and which managers still have room to rotate without dropping points.',
-    category: 'League',
+    title: 'Fan interview: From Lagos street pitch to season-ticket holder',
+    summary: 'How one supporter built a community of 12,000 fans who watch every match together.',
+    body: 'He started with a WhatsApp group and a borrowed projector. Today the viewing room sells out. We asked about loyalty, ticket prices, and what clubs still get wrong about African fans. His answers are practical, emotional, and impossible to ignore if you work in football marketing.',
+    category: 'Interview',
     time: '8h ago',
-    readMins: 3,
-    emoji: '🏆',
+    readMins: 5,
+    author: 'Chioma Bello',
+    featured: true,
+    imageGradient: 'from-orange-400/25 via-rose-300/20 to-pink-200/25',
   },
   {
     id: 'n4',
-    title: 'How African stars are shaping top European clubs',
-    summary: 'From the Premier League to La Liga, continental talent is driving big moments.',
-    body: 'A new generation is delivering goals, assists and leadership. This piece highlights standout performers this month, their club impact, and what it means for the next AFCON cycle.',
-    category: 'Features',
+    title: 'Transfer desk: Three moves that quietly changed the league',
+    summary: 'Not the biggest fees — the smartest structures. Loans, buy-backs, and sell-on clauses explained.',
+    body: 'Deadline day headlines miss the fine print. We unpacked three deals where the structure matters more than the fee: performance triggers, optional years, and how clubs protected resale value.',
+    category: 'Transfer',
     time: '12h ago',
-    readMins: 6,
-    emoji: '🌍',
+    readMins: 4,
+    author: 'Marco Silva',
+    imageGradient: 'from-lime-400/20 via-green-300/15 to-teal-200/20',
   },
   {
     id: 'n5',
-    title: 'VAR debate: What fans actually want changed',
-    summary: 'Clarity, speed and consistency — the Tribe community speaks.',
-    body: 'After another weekend of disputed calls, we gathered the most common fan requests: fewer stoppages, clearer announcements, and a higher bar for intervention. Here is a practical list leagues could adopt without rewriting the laws of the game.',
+    title: 'Opinion: Stop treating African talent as a short-term gamble',
+    summary: 'Clubs that invest in pathways — not just first-team minutes — win twice.',
+    body: 'The pattern is familiar: sign young, loan often, sell early. The clubs building lasting value do the opposite. They assign mentors, protect rest cycles, and plan multi-year roles.',
     category: 'Opinion',
     time: '1d ago',
-    readMins: 4,
-    emoji: '🤖',
+    readMins: 5,
+    author: 'Nadia Hassan',
+    imageGradient: 'from-indigo-400/25 via-blue-300/20 to-slate-200/25',
   },
   {
     id: 'n6',
-    title: 'Youth academy watch: Three names to track this season',
-    summary: 'Teenagers already training with first teams — and why scouts are excited.',
-    body: 'Development pathways are accelerating. We profile three prospects, their playing styles, and realistic timelines for regular minutes.',
-    category: 'Youth',
+    title: 'Feature: Inside a midweek recovery session with the physio team',
+    summary: 'Ice baths are the easy photo. The real work is load management and sleep data.',
+    body: 'We spent a morning with a top-flight medical unit. GPS loads, wellness questionnaires, and why one player sat out despite feeling fine. A rare look at the quiet decisions that keep squads available in April.',
+    category: 'Feature',
     time: '1d ago',
-    readMins: 3,
-    emoji: '⭐',
+    readMins: 7,
+    author: 'Tom Adeyemi',
+    imageGradient: 'from-amber-300/25 via-yellow-200/20 to-orange-100/30',
   },
 ];
 
-export const PRODUCTS: Product[] = [
-  { id: 'p1', name: 'Tribe Home Jersey', price: 54.99, emoji: '👕', tag: 'Bestseller', category: 'jersey' },
-  { id: 'p2', name: 'Away Jersey 26/27', price: 54.99, emoji: '🎽', tag: 'New', category: 'jersey' },
-  { id: 'p3', name: 'Classic Lime Hoodie', price: 64.99, emoji: '🧥', tag: 'Hot', category: 'hoodie' },
-  { id: 'p4', name: 'Blackout Hoodie', price: 62.99, emoji: '🖤', category: 'hoodie' },
-  { id: 'p5', name: 'Neon Cap', price: 24.99, emoji: '🧢', tag: 'New', category: 'cap' },
-  { id: 'p6', name: 'Matchday Cap', price: 22.99, emoji: '🎩', category: 'cap' },
-  { id: 'p7', name: 'Tribe Scarf', price: 29.99, emoji: '🧣', category: 'accessories' },
-  { id: 'p8', name: 'Training Socks (2-pack)', price: 16.99, emoji: '🧦', category: 'accessories' },
-  { id: 'p9', name: 'Pro Training Jacket', price: 79.99, emoji: '🧥', tag: 'Pro', category: 'hoodie' },
-  { id: 'p10', name: 'Fan Wristband Set', price: 12.99, emoji: '💚', category: 'accessories' },
-];
-
-export const STARTER_CHAT: ChatMessage[] = [
-  { id: 'ch1', user: 'Ade_Gunner', text: 'Arsenal looking solid tonight 🔥' },
-  { id: 'ch2', user: 'Madridista_99', text: 'El Clásico is going to be chaos' },
-  { id: 'ch3', user: 'Kopite_Liv', text: 'City vs Liverpool always delivers' },
-  { id: 'ch4', user: 'TribeMod', text: 'Keep it respectful — debate hard, hate never 💚' },
-  { id: 'ch5', user: 'BarcaFan_X', text: 'We need a win badly. Come on!' },
-  { id: 'ch6', user: 'EPL_Analyst', text: 'That second goal was pure class' },
-  { id: 'ch7', user: 'NaijaFan', text: 'Who else watching from Lagos? 🇳🇬' },
-  { id: 'ch8', user: 'Ultra_South', text: 'Atmosphere is electric in here' },
+export const PRODUCTS = [
+  { id: 'p1', name: 'Home Jersey 26/27', price: 54.99, emoji: '👕', tag: 'Bestseller', category: 'jersey' as const },
+  { id: 'p2', name: 'Away Jersey', price: 54.99, emoji: '🎽', tag: 'New', category: 'jersey' as const },
+  { id: 'p3', name: 'Classic Hoodie', price: 64.99, emoji: '🧥', tag: 'Hot', category: 'hoodie' as const },
+  { id: 'p4', name: 'Soft Shell Jacket', price: 79.99, emoji: '🧥', category: 'hoodie' as const },
+  { id: 'p5', name: 'Matchday Cap', price: 24.99, emoji: '🧢', tag: 'New', category: 'cap' as const },
+  { id: 'p6', name: 'Training Cap', price: 22.99, emoji: '🧢', category: 'cap' as const },
+  { id: 'p7', name: 'Knit Scarf', price: 29.99, emoji: '🧣', category: 'accessories' as const },
+  { id: 'p8', name: 'Socks 2-Pack', price: 16.99, emoji: '🧦', category: 'accessories' as const },
 ];
 
 export const CREST_COLORS = [
-  'bg-red-600',
-  'bg-blue-600',
-  'bg-sky-500',
-  'bg-amber-500',
-  'bg-emerald-600',
-  'bg-purple-600',
-  'bg-rose-600',
-  'bg-indigo-500',
+  'bg-red-500', 'bg-blue-500', 'bg-sky-500', 'bg-amber-500',
+  'bg-emerald-500', 'bg-purple-500', 'bg-rose-500', 'bg-indigo-500',
+];
+
+export const AD_PACKAGES = [
+  { id: 'a1', name: 'Homepage Banner', price: 'From $290/wk', desc: 'Prime placement above the fold on every home visit.', reach: 'High intent fans' },
+  { id: 'a2', name: 'In-Article Native', price: 'From $180/wk', desc: 'Sits inside long reads — interviews and analysis.', reach: 'Readers mid-session' },
+  { id: 'a3', name: 'Newsletter Spot', price: 'From $120/send', desc: 'One featured slot in our weekly fan digest.', reach: 'Email subscribers' },
+  { id: 'a4', name: 'Shop Takeover', price: 'Custom', desc: 'Brand the merch grid for a product launch weekend.', reach: 'Buyers' },
 ];
