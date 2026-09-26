@@ -1,18 +1,11 @@
 {
   "name": "Football Fans Tribe",
   "short_name": "Fans Tribe",
-  "description": "Live scores, fan polls, match chat and merch",
+  "description": "Interviews, match analysis, news and shop for football fans",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#09090b",
-  "theme_color": "#09090b",
+  "background_color": "#f8fafc",
+  "theme_color": "#f8fafc",
   "orientation": "portrait-primary",
-  "icons": [
-    {
-      "src": "/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
-  ]
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
 }

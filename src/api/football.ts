@@ -74,7 +74,7 @@ export async function fetchScoresBundle(): Promise<{
     const leagueIds = [39, 140, 2, 135, 78, 61, 399];
     const batches = await Promise.all(
       leagueIds.map((id) =>
-        getFixtures({ league: String(id), season: '2025', date: today }).catch(() => [] as ScheduledMatch[])
+        getFixtures({ league: String(id), season: '2026', date: today }).catch(() => [] as ScheduledMatch[])
       )
     );
     let matches = batches.flat();

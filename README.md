@@ -1,33 +1,42 @@
-# Football Fans Tribe
+# Football Fans Tribe — Production platform
 
-Official-style web platform for **Football Fans Tribe** — Nigeria’s football media community (interviews, previews, podcasts, live shows, vlogs, shop).
+Modern media + shop for **Football Fans Tribe** (Naija brand · 1.9M Facebook following).
 
-**Repo:** https://github.com/rector6/football
+## What’s included
 
-## What is included
+- **Home** — Studio hero, featured interviews & analysis, newsletter (no live scores on home)
+- **News** — Filters by Interview / Match Analysis / Preview / Review / Naija Fans / Feature
+- **Article pages** — Professional layout, author, share (native, X, Facebook, copy link)
+- **Live scores** — API-Football (EPL, La Liga, UCL, Serie A, Bundesliga, Ligue 1, NPFL) with demo fallback
+- **Shop** — Jerseys (Nigeria + major clubs), hoodie, cap, scarf · product detail + cart (cart only on shop)
+- **Podcasts** — Episode cards for Fans Tribe Live / Matchday / Vlogs
+- **About · Advertise · Contact** — Brand story, ad packages, support form
+- **PWA-ready** light glass UI · mobile bottom nav · smooth page loader
 
-| Area | Features |
-|------|----------|
-| **Home** | News-first feed (no live scores on home), quick links, featured stories, podcast teaser, ads, footer |
-| **News** | Interviews, match analysis, previews, reviews, Naija fans, features + full article reader |
-| **Scores** | Live / fixtures / results (EPL, UCL, AFCON qualifiers) |
-| **Shop** | Club jerseys (Nigeria, Arsenal, Chelsea, City, Liverpool, Madrid, Barca), hoodie, cap, scarf — **tap product for detail page**, size select, add to cart, qty, checkout drawer |
-| **Podcasts** | Fans Tribe Live, Matchday Podcast, Vlogs |
-| **About / Advertise / Contact** | Brand story, ad packages (NGN), support form |
+## Stack
 
-**Design:** Light glass UI, soft gradients, mobile bottom nav + menu, smooth loader.
+React 18 · Vite · TypeScript · Tailwind · Framer Motion · Lucide · API-Football
 
-## Run
+## Setup
 
 ```bash
 npm install
+cp .env.example .env   # optional: add VITE_API_FOOTBALL_KEY
 npm run dev
 ```
 
-## Deploy (Netlify)
+Without an API key, scores use high-quality demo data (major clubs + Nigeria).
 
-Import this repo — `netlify.toml` sets `npm run build` → `dist`.
+## Deploy
 
-## Pitch-ready
+Netlify / any static host. Do **not** deploy until the brand is ready — build and review on GitHub first.
 
-Built to match the real Facebook / YouTube brand: Naija-first content, partner-ready ads, full merch flow.
+```bash
+npm run build
+```
+
+`netlify.toml` and `public/_redirects` are included for SPA routing when you push.
+
+## Pitch summary
+
+Production-ready demo of a complete fan platform: news-first home, studio welcome, shareable articles, real jersey product flow, newsletter, and live scores for the Tribe.
