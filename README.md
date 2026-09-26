@@ -1,33 +1,33 @@
 # Football Fans Tribe
 
-Premium football community hub — live scores, fan polls, match chat, and merch.
+Official-style web platform for **Football Fans Tribe** — Nigeria’s football media community (interviews, previews, podcasts, live shows, vlogs, shop).
 
-**Repo:** https://github.com/rector6/football  
-**Stack:** React 18 · Tailwind CSS · Framer Motion · Lucide Icons · Vite
+**Repo:** https://github.com/rector6/football
 
-## Deploy on Netlify
+## What is included
 
-1. [Netlify](https://app.netlify.com) → **Add new site** → **Import an existing project**
-2. Connect GitHub → select **rector6/football**
-3. Build is auto-configured from `netlify.toml` (`npm run build` → `dist`)
-4. Deploy
+| Area | Features |
+|------|----------|
+| **Home** | News-first feed (no live scores on home), quick links, featured stories, podcast teaser, ads, footer |
+| **News** | Interviews, match analysis, previews, reviews, Naija fans, features + full article reader |
+| **Scores** | Live / fixtures / results (EPL, UCL, AFCON qualifiers) |
+| **Shop** | Club jerseys (Nigeria, Arsenal, Chelsea, City, Liverpool, Madrid, Barca), hoodie, cap, scarf — **tap product for detail page**, size select, add to cart, qty, checkout drawer |
+| **Podcasts** | Fans Tribe Live, Matchday Podcast, Vlogs |
+| **About / Advertise / Contact** | Brand story, ad packages (NGN), support form |
 
-## Run locally
+**Design:** Light glass UI, soft gradients, mobile bottom nav + menu, smooth loader.
+
+## Run
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Features
+## Deploy (Netlify)
 
-| Page | Features |
-|------|----------|
-| **Feed** | Live match ticker, breaking hero, trending cards, Tribe Pro teaser |
-| **Scores** | Live / Fixtures / Results toggle, league sections, match chat |
-| **Forum** | El Clásico poll with animated bars, live chat with send |
-| **Shop** | Product grid, add to cart, cart drawer + badge |
+Import this repo — `netlify.toml` sets `npm run build` → `dist`.
 
-**Mobile:** Floating pill bottom nav, safe-area insets, PWA (Add to Home Screen).
+## Pitch-ready
 
-**Design:** Matte black + neon lime, native-app feel on phones.
+Built to match the real Facebook / YouTube brand: Naija-first content, partner-ready ads, full merch flow.
