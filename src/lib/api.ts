@@ -1,5 +1,18 @@
 /** Client helpers — talk only to /api/* (Netlify Functions). */
 
+export type FeedArticle = {
+  id: string;
+  title: string;
+  summary: string;
+  source: string;
+  source_url: string;
+  image?: string | null;
+  tags?: string[] | null;
+  category?: string | null;
+  published_at?: string | null;
+  created_at?: string | null;
+};
+
 function sessionId(): string {
   try {
     const key = "fft_session";
@@ -61,5 +74,27 @@ export async function trackClick(
     });
   } catch {
     /* ignore */
+  }
+}
+
+/** GET /api/news — AI-summarised feed from RSS ingest */
+export async function fetchNews(params?: {
+  category?: string;
+  limit?: number;
+  id?: string;
+}): Promise<FeedArticle[]> {
+  try {
+    const qs = new URLSearchParams();
+    if (params?.category) qs.set("category", params.category);
+    if (params?.limit) qs.set("limit", String(params.limit));
+    if (params?.id) qs.set("id", params.id);
+    const res = await fetch(`/api/news?${qs.toString()}`, {
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    return Array.isArray(json.articles) ? json.articles : [];
+  } catch {
+    return [];
   }
 }
