@@ -22,47 +22,70 @@ export function ScoresPage() {
   const [tab, setTab] = useState<'live' | 'fixture' | 'result'>('live');
   const [matches, setMatches] = useState<ScheduledMatch[]>([]);
   const [ticker, setTicker] = useState<LiveMatch[]>([]);
-  const [source, setSource] = useState<'api' | 'demo'>('demo');
+  const [source, setSource] = useState<'api' | 'cache' | 'demo'>('demo');
+  const [hasLive, setHasLive] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [updatedAt, setUpdatedAt] = useState<string>('');
 
   useEffect(() => {
     let cancelled = false;
+    let timer: number | undefined;
+
     async function load() {
       const bundle = await fetchScoresBundle();
       if (cancelled) return;
       setMatches(bundle.matches);
       setTicker(bundle.ticker);
       setSource(bundle.source);
+      setHasLive(bundle.hasLive);
       setLoading(false);
+      setUpdatedAt(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+
+      // Poll every 60s when matches are live; every 3 min otherwise (saves quota)
+      const delay = bundle.hasLive ? 60_000 : 180_000;
+      if (timer) window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        void load();
+      }, delay);
     }
+
     void load();
-    const id = window.setInterval(() => {
-      void load();
-    }, 60_000);
     return () => {
       cancelled = true;
-      window.clearInterval(id);
+      if (timer) window.clearTimeout(timer);
     };
   }, []);
 
   const filtered = matches.filter((m) => m.status === tab);
   const leagues = [...new Set(filtered.map((m) => m.league))];
+
+  const badge =
+    source === 'demo' ? (
+      <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-black uppercase text-amber-800">
+        Demo data
+      </span>
+    ) : source === 'cache' ? (
+      <span className="shrink-0 rounded-full bg-sky-100 px-2.5 py-1 text-[10px] font-black uppercase text-sky-800">
+        Cached
+      </span>
+    ) : (
+      <span className="shrink-0 rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-black uppercase text-emerald-800">
+        Live API
+      </span>
+    );
+
   return (
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-black text-slate-900">Live scores</h1>
-          <p className="text-sm text-slate-500 mt-0.5">EPL, UCL, AFCON qualifiers</p>
+          <p className="text-sm text-slate-500 mt-0.5">
+            EPL · La Liga · UCL · NPFL · AFCON
+            {updatedAt ? ` · Updated ${updatedAt}` : ''}
+            {hasLive ? ' · Auto-refresh 60s' : ''}
+          </p>
         </div>
-        {source === 'demo' ? (
-          <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-black uppercase text-amber-800">
-            Demo data
-          </span>
-        ) : (
-          <span className="shrink-0 rounded-full bg-emerald-100 px-2.5 py-1 text-[10px] font-black uppercase text-emerald-800">
-            Live API
-          </span>
-        )}
+        {badge}
       </div>
       <div className="flex gap-1.5 p-1 rounded-2xl glass">
         {(['live', 'fixture', 'result'] as const).map((t) => (
@@ -148,6 +171,11 @@ export function ScoresPage() {
       ))}
       {!loading && filtered.length === 0 ? (
         <p className="text-center text-sm text-slate-500 py-6">No {tab} matches right now.</p>
+      ) : null}
+      {source === 'demo' ? (
+        <p className="text-center text-[11px] text-amber-700">
+          Add <code className="font-mono">API_FOOTBALL_KEY</code> in Netlify env for real scores.
+        </p>
       ) : null}
     </div>
   );

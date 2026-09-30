@@ -1,4 +1,4 @@
--- Football Fans Tribe — Phase 1 schema
+-- Football Fans Tribe — Phase 1 + Phase 2 schema
 -- Run in Supabase SQL Editor
 
 -- Affiliate / engagement clicks
@@ -40,10 +40,18 @@ create table if not exists public.subscriptions (
   created_at timestamptz not null default now()
 );
 
+-- Phase 2: live scores cache (saves API-Football quota)
+create table if not exists public.scores_cache (
+  cache_key text primary key,
+  payload jsonb not null,
+  updated_at timestamptz not null default now()
+);
+
 -- Row Level Security
 alter table public.affiliate_clicks enable row level security;
 alter table public.newsletter_subscribers enable row level security;
 alter table public.subscriptions enable row level security;
+alter table public.scores_cache enable row level security;
 
 -- Anon can insert clicks (tracking from the public site)
 drop policy if exists "anon_insert_affiliate_clicks" on public.affiliate_clicks;
@@ -61,5 +69,5 @@ create policy "anon_insert_newsletter"
   to anon
   with check (true);
 
--- No public read on clicks / subscriptions (service role bypasses RLS)
--- Newsletter: no public select (prevent email harvesting)
+-- scores_cache: only service role (no public policies = locked to service role)
+-- Service role bypasses RLS by default.

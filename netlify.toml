@@ -17,6 +17,12 @@
   force = true
 
 [[redirects]]
+  from = "/api/scores"
+  to = "/.netlify/functions/scores"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/api/track"
   to = "/.netlify/functions/track"
   status = 200

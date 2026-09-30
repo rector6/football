@@ -1,117 +1,80 @@
 import type { ScheduledMatch, LiveMatch } from "../data";
 import { ALL_MATCHES, LIVE_TICKER } from "../data";
-import { fetchFootball } from "../lib/api";
 
-type ApiFixture = {
-  fixture: {
-    id: number;
-    status: { short: string; elapsed: number | null };
-    date: string;
-  };
-  league: { name: string };
-  teams: { home: { name: string }; away: { name: string } };
-  goals: { home: number | null; away: number | null };
+type ScoresBundleResponse = {
+  matches?: ScheduledMatch[];
+  ticker?: LiveMatch[];
+  source?: "api" | "cache" | "demo";
+  hasLive?: boolean;
+  error?: string;
+  generatedAt?: string;
 };
 
-type ApiResponse = {
-  response?: ApiFixture[];
-};
-
-function mapStatus(short: string): "live" | "fixture" | "result" {
-  if (["1H", "2H", "HT", "ET", "BT", "P", "LIVE"].includes(short)) return "live";
-  if (["FT", "AET", "PEN"].includes(short)) return "result";
-  return "fixture";
-}
-
-function mapFixture(f: ApiFixture): ScheduledMatch {
-  const st = mapStatus(f.fixture.status.short);
-  const elapsed = f.fixture.status.elapsed;
-  const time =
-    st === "live" && elapsed != null
-      ? `${elapsed}'`
-      : st === "result"
-        ? "FT"
-        : new Date(f.fixture.date).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          });
-  return {
-    id: String(f.fixture.id),
-    home: f.teams.home.name,
-    away: f.teams.away.name,
-    time,
-    league: f.league.name,
-    status: st,
-    homeScore: f.goals.home ?? undefined,
-    awayScore: f.goals.away ?? undefined,
-    minute: st === "live" && elapsed != null ? `${elapsed}'` : undefined,
-  };
-}
-
-async function getFixtures(
-  params: Record<string, string>,
-): Promise<ScheduledMatch[]> {
-  const json = await fetchFootball<ApiResponse>("fixtures", params);
-  if (!json?.response) return [];
-  return json.response.map(mapFixture);
-}
-
-/** Live + today fixtures for major leagues + Nigeria NPFL. Uses /api/football only. */
+/**
+ * Phase 2 — single call to /api/scores (server aggregates + Supabase cache).
+ * Demo data is only used if the API returns nothing.
+ */
 export async function fetchScoresBundle(): Promise<{
   matches: ScheduledMatch[];
   ticker: LiveMatch[];
-  source: "api" | "demo";
+  source: "api" | "cache" | "demo";
+  hasLive: boolean;
   error?: string;
 }> {
   try {
-    const today = new Date().toISOString().slice(0, 10);
-    const season = String(new Date().getFullYear());
-    // 39 EPL, 140 La Liga, 2 UCL, 135 Serie A, 78 Bundesliga, 61 Ligue 1, 399 NPFL
-    const leagueIds = [39, 140, 2, 135, 78, 61, 399];
-    const batches = await Promise.all(
-      leagueIds.map((id) =>
-        getFixtures({
-          league: String(id),
-          season,
-          date: today,
-        }).catch(() => [] as ScheduledMatch[]),
-      ),
-    );
-    let matches = batches.flat();
-
-    if (matches.length === 0) {
-      matches = await getFixtures({ live: "all" });
-    }
-
-    if (matches.length === 0) {
+    const res = await fetch("/api/scores", {
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) {
       return {
         matches: ALL_MATCHES,
         ticker: LIVE_TICKER,
         source: "demo",
-        error: "No fixtures returned; showing demo data.",
+        hasLive: false,
+        error: `Scores HTTP ${res.status}`,
+      };
+    }
+    const json = (await res.json()) as ScoresBundleResponse;
+    const matches = Array.isArray(json.matches) ? json.matches : [];
+    const ticker = Array.isArray(json.ticker) ? json.ticker : [];
+
+    if (!matches.length) {
+      return {
+        matches: ALL_MATCHES,
+        ticker: LIVE_TICKER,
+        source: "demo",
+        hasLive: false,
+        error: json.error || "No fixtures; showing demo data.",
       };
     }
 
-    const live = matches.filter((m) => m.status === "live");
-    const ticker: LiveMatch[] = (live.length ? live : matches.slice(0, 6)).map(
-      (m) => ({
-        id: m.id,
-        home: m.home.slice(0, 3).toUpperCase(),
-        away: m.away.slice(0, 3).toUpperCase(),
-        homeScore: m.homeScore ?? 0,
-        awayScore: m.awayScore ?? 0,
-        minute: m.minute || m.time,
-        league: m.league.slice(0, 12),
-      }),
-    );
-
-    return { matches, ticker, source: "api" };
+    return {
+      matches,
+      ticker: ticker.length
+        ? ticker
+        : matches
+            .filter((m) => m.status === "live")
+            .slice(0, 8)
+            .map((m) => ({
+              id: m.id,
+              home: m.home.slice(0, 3).toUpperCase(),
+              away: m.away.slice(0, 3).toUpperCase(),
+              homeScore: m.homeScore ?? 0,
+              awayScore: m.awayScore ?? 0,
+              minute: m.minute || m.time,
+              league: m.league.slice(0, 14),
+            })),
+      source: json.source === "cache" ? "cache" : "api",
+      hasLive: Boolean(json.hasLive),
+      error: json.error,
+    };
   } catch (e) {
     return {
       matches: ALL_MATCHES,
       ticker: LIVE_TICKER,
       source: "demo",
-      error: e instanceof Error ? e.message : "API error",
+      hasLive: false,
+      error: e instanceof Error ? e.message : "Network error",
     };
   }
 }
