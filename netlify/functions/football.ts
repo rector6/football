@@ -1,4 +1,5 @@
 import type { Handler, HandlerEvent } from "@netlify/functions";
+import { callApiFootball, corsHeaders } from "./_apiFootball";
 
 const ALLOWED = new Set([
   "fixtures",
@@ -11,13 +12,10 @@ const ALLOWED = new Set([
   "countries",
 ]);
 
-const cors = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "Content-Type",
-  "Access-Control-Allow-Methods": "GET, OPTIONS",
-};
-
 export const handler: Handler = async (event: HandlerEvent) => {
+  const origin = event.headers?.origin || event.headers?.Origin;
+  const cors = corsHeaders(origin);
+
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 204, headers: cors, body: "" };
   }
@@ -44,7 +42,9 @@ export const handler: Handler = async (event: HandlerEvent) => {
   }
 
   const params = event.queryStringParameters || {};
-  const endpoint = String(params.endpoint || "").toLowerCase().replace(/^\/+/, "");
+  const endpoint = String(params.endpoint || "")
+    .toLowerCase()
+    .replace(/^\/+/, "");
 
   if (!endpoint || !ALLOWED.has(endpoint)) {
     return {
@@ -56,36 +56,43 @@ export const handler: Handler = async (event: HandlerEvent) => {
     };
   }
 
-  // Map livescore convenience alias → fixtures?live=all
   const path = endpoint === "livescore" ? "fixtures" : endpoint;
-  const qs = new URLSearchParams();
+  const qs: Record<string, string> = {};
   for (const [k, v] of Object.entries(params)) {
     if (k === "endpoint" || v == null || v === "") continue;
-    qs.set(k, String(v));
+    qs[k] = String(v);
   }
-  if (endpoint === "livescore" && !qs.has("live")) {
-    qs.set("live", "all");
+  if (endpoint === "livescore" && !qs.live) {
+    qs.live = "all";
   }
 
-  const url = `https://v3.football.api-sports.io/${path}?${qs.toString()}`;
+  // Standings: longer client cache (24h)
+  const cacheControl =
+    endpoint === "standings"
+      ? "public, max-age=86400"
+      : endpoint === "fixtures" || endpoint === "livescore"
+        ? "public, max-age=30"
+        : "public, max-age=120";
 
   try {
-    const res = await fetch(url, {
-      headers: {
-        "x-apisports-key": key,
-        Accept: "application/json",
-      },
-    });
+    const result = await callApiFootball(path, qs);
 
-    const text = await res.text();
-    let body = text;
-    try {
-      body = JSON.stringify(JSON.parse(text));
-    } catch {
-      /* keep raw */
+    if (result.rateLimited) {
+      return {
+        statusCode: 429,
+        headers: {
+          ...cors,
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=60",
+          "Retry-After": "60",
+        },
+        body: result.body.includes("Rate limited")
+          ? result.body
+          : JSON.stringify({ error: "Rate limited, try again shortly" }),
+      };
     }
 
-    if (!res.ok) {
+    if (!result.ok) {
       return {
         statusCode: 503,
         headers: {
@@ -93,11 +100,16 @@ export const handler: Handler = async (event: HandlerEvent) => {
           "Content-Type": "application/json",
           "Cache-Control": "no-store",
         },
-        body: JSON.stringify({
-          error: `API-Football upstream ${res.status}`,
-          detail: body.slice(0, 500),
-        }),
+        body: result.body,
       };
+    }
+
+    // Normalize JSON body
+    let body = result.body;
+    try {
+      body = JSON.stringify(JSON.parse(result.body));
+    } catch {
+      /* keep */
     }
 
     return {
@@ -105,12 +117,16 @@ export const handler: Handler = async (event: HandlerEvent) => {
       headers: {
         ...cors,
         "Content-Type": "application/json",
-        "Cache-Control": "public, max-age=30",
+        "Cache-Control": cacheControl,
+        ...(result.remaining != null
+          ? { "X-Quota-Remaining-Hint": String(result.remaining) }
+          : {}),
       },
       body,
     };
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Upstream request failed";
+    const message =
+      err instanceof Error ? err.message : "Upstream request failed";
     return {
       statusCode: 503,
       headers: {
