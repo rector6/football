@@ -1,0 +1,22 @@
+{
+  "updated": "2026-09-30",
+  "note": "Manual weekly NPFL fallback when TheSportsDB is empty. Edit matches as needed.",
+  "matches": [
+    {
+      "id": "npfl-sample-1",
+      "home": "Enyimba",
+      "away": "Remo Stars",
+      "time": "Sat 16:00",
+      "league": "NPFL",
+      "status": "fixture"
+    },
+    {
+      "id": "npfl-sample-2",
+      "home": "Kano Pillars",
+      "away": "Rangers Intl",
+      "time": "Sun 16:00",
+      "league": "NPFL",
+      "status": "fixture"
+    }
+  ]
+}

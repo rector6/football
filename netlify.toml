@@ -23,6 +23,24 @@
   force = true
 
 [[redirects]]
+  from = "/api/espn"
+  to = "/.netlify/functions/espn"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/football-data"
+  to = "/.netlify/functions/football-data"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/npfl"
+  to = "/.netlify/functions/npfl"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/api/track"
   to = "/.netlify/functions/track"
   status = 200
