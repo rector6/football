@@ -2,7 +2,15 @@ import React, { useEffect, useState } from "react";
 import { Clock } from "lucide-react";
 import { fetchNews, type FeedArticle } from "../lib/api";
 
-const FILTERS = ["All", "Transfers", "Match Reports", "Analysis", "Nigeria"] as const;
+const FILTERS = [
+  "All",
+  "Transfers",
+  "Match Reports",
+  "Analysis",
+  "Nigeria",
+  "Africa",
+  "General",
+] as const;
 
 function timeAgo(iso?: string | null) {
   if (!iso) return "";
@@ -44,7 +52,7 @@ export function NewsPage({ onOpen }: { onOpen: (a: FeedArticle) => void }) {
       <div>
         <h1 className="text-xl font-black text-slate-900">News</h1>
         <p className="text-sm text-slate-500 mt-0.5">
-          AI briefs from BBC, Sky, ESPN, Goal &amp; Guardian — open the source for the full story
+          AI briefs · BBC · Sky · ESPN · Goal · Guardian · Nigeria &amp; Africa desks
         </p>
       </div>
 
@@ -69,8 +77,7 @@ export function NewsPage({ onOpen }: { onOpen: (a: FeedArticle) => void }) {
         <div className="rounded-2xl glass p-6 text-center space-y-2">
           <p className="text-sm font-bold text-slate-800">No stories yet</p>
           <p className="text-xs text-slate-500">
-            Run ingest once: open <code className="font-mono text-[10px]">/api/news-ingest</code> after
-            SQL migration + GEMINI_API_KEY (optional).
+            Run ingest: <code className="font-mono text-[10px]">/api/news-ingest</code> after SQL + optional GEMINI_API_KEY.
           </p>
         </div>
       ) : (

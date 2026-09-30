@@ -32,17 +32,19 @@ function heuristicSummary(title: string, description: string): {
   const first =
     desc.split(/(?<=[.!?])\s+/)[0] ||
     title ||
-    "Football news update from the Tribe desk.";
+    "More reporting is needed on this developing football story.";
   const summary =
     first.length > 40
       ? first.slice(0, 280)
       : `${title}. ${first}`.slice(0, 280);
   const lower = `${title} ${desc}`.toLowerCase();
-  let category = "Match Reports";
+  let category = "General";
   if (/transfer|sign|deal|loan|fee/.test(lower)) category = "Transfers";
   else if (/analysis|tactical|why|how/.test(lower)) category = "Analysis";
-  else if (/nigeria|super eagles|npfl|afcon|naija/.test(lower))
-    category = "Nigeria";
+  else if (/nigeria|super eagles|npfl|naija/.test(lower)) category = "Nigeria";
+  else if (/africa|afcon|caf/.test(lower)) category = "Africa";
+  else if (/match|score|goal|win|draw|defeat/.test(lower))
+    category = "Match Reports";
   const tags: string[] = [];
   if (/arsenal|chelsea|liverpool|manchester|tottenham/.test(lower))
     tags.push("EPL");
@@ -61,10 +63,13 @@ async function summarizeWithGemini(
   try {
     const ai = new GoogleGenAI({ apiKey: key });
     const prompt =
-      "You are a sports editor. Using ONLY this headline and description, " +
-      "write a 2-sentence factual summary. Do not invent facts. " +
-      "Return JSON only: { \"summary\": string, \"tags\": string[], \"category\": string }. " +
-      "category must be one of: Transfers, Match Reports, Analysis, Nigeria. " +
+      "You are a sports editor for a Nigerian football platform. " +
+      "Using ONLY this headline and description, write a factual " +
+      "2-sentence summary. Do not invent facts, quotes, numbers, " +
+      "or outcomes. If the description is insufficient, say more " +
+      "reporting is needed. Return JSON only: " +
+      '{ "summary": string, "tags": string[], "category": string }. ' +
+      "category must be one of: Transfers, Match Reports, Analysis, Nigeria, Africa, General. " +
       `Headline: ${title}. Description: ${description.slice(0, 1200)}.`;
 
     const response = await Promise.race([
@@ -87,7 +92,7 @@ async function summarizeWithGemini(
       tags: Array.isArray(parsed.tags)
         ? parsed.tags.map(String).slice(0, 6)
         : [],
-      category: String(parsed.category || "Match Reports").slice(0, 40),
+      category: String(parsed.category || "General").slice(0, 40),
     };
   } catch (err) {
     console.warn(
@@ -111,15 +116,21 @@ function pickImage(item: any): string | null {
   return null;
 }
 
+/**
+ * LEGAL: only title + RSS description + source_url.
+ * Never fetch or store full article body from the source site.
+ */
 export async function runNewsIngest(): Promise<{
+  fetched: number;
+  new: number;
   inserted: number;
-  scanned: number;
+  skipped: number;
   errors: string[];
 }> {
   const sb = supabaseAdmin();
   if (!sb) {
     console.error("[news-ingest] Missing Supabase env");
-    return { inserted: 0, scanned: 0, errors: ["no supabase"] };
+    return { fetched: 0, new: 0, inserted: 0, skipped: 0, errors: ["no supabase"] };
   }
 
   const { data: sources, error: srcErr } = await sb
@@ -128,42 +139,54 @@ export async function runNewsIngest(): Promise<{
     .eq("active", true);
 
   if (srcErr || !sources?.length) {
-    console.error("[news-ingest] sources", srcErr?.message || "empty");
     return {
+      fetched: 0,
+      new: 0,
       inserted: 0,
-      scanned: 0,
+      skipped: 0,
       errors: [srcErr?.message || "no sources"],
     };
   }
 
+  let fetched = 0;
   let inserted = 0;
-  let scanned = 0;
+  let skipped = 0;
+  let newCount = 0;
   const errors: string[] = [];
 
   for (const source of sources) {
     try {
       const feed = await parser.parseURL(source.rss_url);
       const items = (feed.items || []).slice(0, 10);
-      scanned += items.length;
+      fetched += items.length;
 
       for (const item of items) {
         const title = String(item.title || "").trim();
         const link = String(item.link || item.guid || "").trim();
-        if (!title || !link) continue;
+        if (!title || !link) {
+          skipped += 1;
+          continue;
+        }
 
         const { data: existing } = await sb
           .from("news_articles")
           .select("id")
           .eq("source_url", link)
           .maybeSingle();
-        if (existing) continue;
+        if (existing) {
+          skipped += 1;
+          continue;
+        }
+        newCount += 1;
 
+        // RSS description only — never scrape full article HTML
         const description = String(
-          item.contentSnippet || item.content || item.summary || "",
+          item.contentSnippet || item.summary || item.content || "",
         )
           .replace(/<[^>]+>/g, " ")
           .replace(/\s+/g, " ")
-          .trim();
+          .trim()
+          .slice(0, 2000);
 
         const ai = await summarizeWithGemini(title, description);
         const published =
@@ -178,7 +201,7 @@ export async function runNewsIngest(): Promise<{
           source_url: link,
           image: pickImage(item),
           tags: ai.tags,
-          category: ai.category || source.category || "Match Reports",
+          category: ai.category || source.category || "General",
           published_at: published,
         });
 
@@ -186,6 +209,7 @@ export async function runNewsIngest(): Promise<{
           if (!/duplicate|unique/i.test(insErr.message)) {
             errors.push(`${source.name}: ${insErr.message}`);
           }
+          skipped += 1;
         } else {
           inserted += 1;
         }
@@ -197,8 +221,8 @@ export async function runNewsIngest(): Promise<{
     }
   }
 
-  console.log("[news-ingest] done", { inserted, scanned, errors: errors.length });
-  return { inserted, scanned, errors };
+  console.log("[news-ingest] done", { fetched, new: newCount, inserted, skipped });
+  return { fetched, new: newCount, inserted, skipped, errors };
 }
 
 export default async () => {
