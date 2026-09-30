@@ -1,1 +1,1 @@
-PLACEHOLDER_WILL_FAIL
+export { AppMain as default } from './AppMain';
