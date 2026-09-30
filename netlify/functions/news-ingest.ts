@@ -91,7 +91,7 @@ async function summarizeWithGemini(
     };
   } catch (err) {
     console.warn(
-      "[news-ingest] Gemini fallback","
+      "[news-ingest] Gemini fallback",
       err instanceof Error ? err.message : err,
     );
     return heuristicSummary(title, description);
@@ -194,7 +194,6 @@ export async function runNewsIngest(): Promise<{
       const msg = err instanceof Error ? err.message : String(err);
       console.error("[news-ingest] RSS failed", source.name, msg);
       errors.push(`${source.name}: ${msg}`);
-      // continue — never crash the cron
     }
   }
 
@@ -202,7 +201,6 @@ export async function runNewsIngest(): Promise<{
   return { inserted, scanned, errors };
 }
 
-/** Scheduled every 30 minutes */
 export default async () => {
   const result = await runNewsIngest();
   console.log("[news-ingest] scheduled", result);
@@ -212,7 +210,6 @@ export const config: Config = {
   schedule: "*/30 * * * *",
 };
 
-/** Manual HTTP trigger: GET/POST /api/news-ingest */
 export const handler: Handler = async () => {
   try {
     const result = await runNewsIngest();
